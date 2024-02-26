@@ -1,6 +1,4 @@
-# Project Demo
 
-[![Alt text]
 
 ## Getting Started
 
