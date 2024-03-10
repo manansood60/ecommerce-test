@@ -15,18 +15,15 @@ role: 0 or by default it for customer signup.
 go user model and see the role field.
 
 */
-
+const cors = require("cors");
 const express = require("express");
 const app = express();
 require("dotenv").config();
 const mongoose = require("mongoose");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
-const cors = require("cors");
 
-const corsOptions = {
-  origin: 'https://192.168.0.105:8000/'
-}
+
 
 // Import Router
 const authRouter = require("./routes/auth");
@@ -58,9 +55,9 @@ mongoose
   .catch((err) => console.log("Database Not Connected !!!"));
 
 // Middleware
+app.use(cors());
 app.use(morgan("dev"));
 app.use(cookieParser());
-app.use(cors());
 app.use(express.static("public"));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
