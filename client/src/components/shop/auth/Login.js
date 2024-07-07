@@ -15,7 +15,7 @@ const Login = (props) => {
   });
 
   const alert = (msg) => <div className="text-xs text-red-500">{msg}</div>;
-
+ 
   const formSubmit = async () => {
     setData({ ...data, loading: true });
     try {
