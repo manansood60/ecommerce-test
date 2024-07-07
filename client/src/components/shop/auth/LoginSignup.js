@@ -2,7 +2,7 @@ import React, { Fragment, useState, useContext } from "react";
 import Login from "./Login";
 import Signup from "./Signup";
 import { LayoutContext } from "../index";
-
+ 
 const LoginSignup = (props) => {
   const { data, dispatch } = useContext(LayoutContext);
 
