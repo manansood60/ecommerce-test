@@ -198,12 +198,16 @@ const AddProductDetail = ({ categories }) => {
               <span className="text-gray-600 text-xs">Must need 2 images</span>
               <input
                 onChange={(e) =>
-                  setFdata({
+                  {
+                    setFdata({
                     ...fData,
                     error: false,
                     success: false,
                     pImage: [...e.target.files],
                   })
+                  console.log("DATA: ", e.target.files)
+                }
+
                 }
                 type="file"
                 accept=".jpg, .jpeg, .png"
@@ -211,6 +215,7 @@ const AddProductDetail = ({ categories }) => {
                 id="image"
                 multiple
               />
+
             </div>
             {/* Most Important part for uploading multiple image */}
             <div className="flex space-x-1 py-4">

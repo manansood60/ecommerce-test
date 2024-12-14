@@ -100,7 +100,7 @@ class Auth {
     }
   }
 
-  /* User  Login/Signin controller  */
+  /* User Login/Signin controller  */
   async postSignin(req, res) {
     let { email, password } = req.body;
     if (!email || !password) {

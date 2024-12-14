@@ -3,16 +3,11 @@ const router = express.Router();
 const customizeController = require("../controller/customize");
 const multer = require("multer");
 
-var storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "public/uploads/customize");
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "_" + file.originalname);
-  },
+// Configure Multer to store files temporarily in memory
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // limit file size to 5MB
 });
-
-const upload = multer({ storage: storage });
 
 router.get("/get-slide-image", customizeController.getImages);
 router.post("/delete-slide-image", customizeController.deleteSlideImage);

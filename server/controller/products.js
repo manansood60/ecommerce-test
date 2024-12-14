@@ -1,31 +1,9 @@
 const productModel = require("../models/products");
 const fs = require("fs");
 const path = require("path");
+const { uploadImageToFirebase, deleteImageFromFirebase } = require("./utility");
 
 class Product {
-  // Delete Image from uploads -> products folder
-  static deleteImages(images, mode) {
-    var basePath =
-      path.resolve(__dirname + "../../") + "/public/uploads/products/";
-    console.log(basePath);
-    for (var i = 0; i < images.length; i++) {
-      let filePath = "";
-      if (mode == "file") {
-        filePath = basePath + `${images[i].filename}`;
-      } else {
-        filePath = basePath + `${images[i]}`;
-      }
-      console.log(filePath);
-      if (fs.existsSync(filePath)) {
-        console.log("Exists image");
-      }
-      fs.unlink(filePath, (err) => {
-        if (err) {
-          return err;
-        }
-      });
-    }
-  }
 
   async getAllProduct(req, res) {
     try {
@@ -53,27 +31,26 @@ class Product {
       !pQuantity |
       !pCategory |
       !pOffer |
-      !pStatus
+      !pStatus 
     ) {
-      Product.deleteImages(images, "file");
-      return res.json({ error: "All filled must be required" });
+      return res.status(400).json({ error: "All filled must be required" });
     }
     // Validate Name and description
     else if (pName.length > 255 || pDescription.length > 3000) {
-      Product.deleteImages(images, "file");
       return res.json({
         error: "Name 255 & Description must not be 3000 charecter long",
       });
     }
-    // Validate Images
+    // Validate Images 
     else if (images.length !== 2) {
-      Product.deleteImages(images, "file");
       return res.json({ error: "Must need to provide 2 images" });
     } else {
       try {
         let allImages = [];
         for (const img of images) {
-          allImages.push(img.filename);
+          // Process the image upload to Firebase Storage using a promise
+          const image = await uploadImageToFirebase(img);
+          allImages.push(image);
         }
         let newProduct = new productModel({
           pImages: allImages,
@@ -130,7 +107,6 @@ class Product {
     }
     // Validate Update Images
     else if (editImages && editImages.length == 1) {
-      Product.deleteImages(editImages, "file");
       return res.json({ error: "Must need to provide 2 images" });
     } else {
       let editData = {
@@ -145,13 +121,24 @@ class Product {
       if (editImages.length == 2) {
         let allEditImages = [];
         for (const img of editImages) {
-          allEditImages.push(img.filename);
+          // Process the image upload to Firebase Storage using a promise
+          const image = await uploadImageToFirebase(img);
+          allEditImages.push(image);
         }
         editData = { ...editData, pImages: allEditImages };
-        Product.deleteImages(pImages.split(","), "string");
+        console.log("EDIT ", editData);
       }
+      
+      
       try {
-        let editProduct = productModel.findByIdAndUpdate(pId, editData);
+        const oldProduct = await productModel.findById(pId);
+        for (const img of oldProduct.pImages) {
+          // Extract the file name from the image URL (e.g., "1725988306505.jpeg")
+          const fileName = path.basename(new URL(img).pathname);
+          // Delete the image from Firebase Storage
+          await deleteImageFromFirebase(fileName);
+        }
+        let editProduct = await productModel.findByIdAndUpdate(pId, editData);
         editProduct.exec((err) => {
           if (err) console.log(err);
           return res.json({ success: "Product edit successfully" });
@@ -171,8 +158,12 @@ class Product {
         let deleteProductObj = await productModel.findById(pId);
         let deleteProduct = await productModel.findByIdAndDelete(pId);
         if (deleteProduct) {
-          // Delete Image from uploads -> products folder
-          Product.deleteImages(deleteProductObj.pImages, "string");
+          for (const img of deleteProductObj.pImages) {
+            // Extract the file name from the image URL (e.g., "1725988306505.jpeg")
+            const fileName = path.basename(new URL(img).pathname);
+            // Delete the image from Firebase Storage
+            await deleteImageFromFirebase(fileName);
+          }
           return res.json({ success: "Product deleted successfully" });
         }
       } catch (err) {

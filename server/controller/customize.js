@@ -4,6 +4,8 @@ const productModel = require("../models/products");
 const orderModel = require("../models/orders");
 const userModel = require("../models/users");
 const customizeModel = require("../models/customize");
+const { uploadImageToFirebase, deleteImageFromFirebase } = require("./utility");
+const path = require("path");
 
 class Customize {
   async getImages(req, res) {
@@ -18,10 +20,11 @@ class Customize {
   }
 
   async uploadSlideImage(req, res) {
-    let image = req.file.filename;
-    if (!image) {
-      return res.json({ error: "All field required" });
+    if (!req.file) {
+      return res.status(400).json({ error: "No Image Found" });
     }
+    // Process the image upload to Firebase Storage using a promise
+    const image = await uploadImageToFirebase(req.file);
     try {
       let newCustomzie = new customizeModel({
         slideImage: image,
@@ -38,24 +41,28 @@ class Customize {
   async deleteSlideImage(req, res) {
     let { id } = req.body;
     if (!id) {
-      return res.json({ error: "All field required" });
+      return res.json({ error: "Image id must be provided" });
     } else {
       try {
         let deletedSlideImage = await customizeModel.findById(id);
-        const filePath = `../server/public/uploads/customize/${deletedSlideImage.slideImage}`;
-
+        if (!deletedSlideImage) {
+          return res.status(404).json({ error: "Slide Image not found" });
+        }
+         // Extract the image URL from the category (this assumes cImage is the URL)
+         const imageUrl = deletedSlideImage.slideImage;
+         // Extract the file name from the image URL (e.g., "1725988306505.jpeg")
+         const fileName = path.basename(new URL(imageUrl).pathname);
+         // Delete the image from Firebase Storage
+         await deleteImageFromFirebase(fileName);
+         // Now delete the category from the database
+ 
         let deleteImage = await customizeModel.findByIdAndDelete(id);
         if (deleteImage) {
-          // Delete Image from uploads -> customizes folder
-          fs.unlink(filePath, (err) => {
-            if (err) {
-              console.log(err);
-            }
-            return res.json({ success: "Image deleted successfully" });
-          });
+          return res.json({ success: "Image deleted successfully" });
         }
       } catch (err) {
         console.log(err);
+        return res.status(500).json({ error: "An error occurred while deleting the Image" });
       }
     }
   }

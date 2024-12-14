@@ -33,7 +33,7 @@ export const createCategory = async ({
   formData.append("cName", cName);
   formData.append("cDescription", cDescription);
   formData.append("cStatus", cStatus);
-
+  console.log("Header", Headers());
   try {
     let res = await axios.post(
       `${apiURL}/api/category/add-category`,
