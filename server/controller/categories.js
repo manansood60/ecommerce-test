@@ -1,7 +1,7 @@
 const path = require("path");
 const { toTitleCase } = require("../config/function");
 const categoryModel = require("../models/categories");
-const bucket = require('./../config/firebase.js'); // Firebase storage bucket instance
+const bucket = require('../config/firebase'); // Firebase storage bucket instance
 const fs = require("fs");
 const { format } = require("util");
 

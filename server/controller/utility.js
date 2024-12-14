@@ -1,5 +1,5 @@
 const path = require("path");
-const bucket = require('./../config/firebase.js'); // Firebase storage bucket instance
+const bucket = require('../config/firebase'); // Firebase storage bucket instance
 
 // Helper function to upload image to Firebase Storage
 const uploadImageToFirebase = async (file) => {    
